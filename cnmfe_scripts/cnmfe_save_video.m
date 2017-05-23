@@ -23,8 +23,8 @@ if ~exist('range_ac', 'var')
 end
 if ~exist('range_Y', 'var')
     if ~exist('multi_factor', 'var')
-        multi_factor = floor(diff(temp)/diff(range_ac));
         temp = quantile(Y(randi(numel(Y), 10000,1)), [0.01, 0.98]);
+        multi_factor = floor(diff(temp)/diff(range_ac));
     else
         temp = quantile(Y(randi(numel(Y), 10000,1)), 0.01);
     end
@@ -68,42 +68,42 @@ for m=t_begin:kt:t_end
     %     set(gca, 'children', flipud(get(gca, 'children')));
     title('Raw data');
     axis equal off tight;
-    
+
     axes(ax_bg); cla;
     imagesc(Ybg(:, :, m),range_Y);
     %     set(gca, 'children', flipud(get(gca, 'children')));
     axis equal off tight;
     title('Background');
-    
+
     axes(ax_signal); cla;
     imagesc(Ysignal(:, :, m), range_ac); hold on;
     %     set(gca, 'children', flipud(get(gca, 'children')));
     title(sprintf('(Raw-BG) X %d', multi_factor));
     axis equal off tight;
-    
+
     axes(ax_denoised); cla;
     imagesc(Yac(:, :, m), range_ac);
     %     imagesc(Ybg(:, :, m), [-50, 50]);
     title(sprintf('Denoised X %d', multi_factor));
     axis equal off tight;
-    
+
     axes(ax_res); cla;
     imagesc(Ysignal(:, :, m)-Yac(:, :, m), range_res);
     %     set(gca, 'children', flipud(get(gca, 'children')));
     title(sprintf('Residual X %d', multi_factor));
     axis equal off tight;
     %         subplot(4,6, [5,6,11,12]+12);
-    
+
     axes(ax_mix); cla;
     imagesc(neuron.reshape(Y_mixed(:, m,:),2));  hold on;
     title('Demixed');
     text(1, 10, sprintf('Time: %.2f second', m/neuron.Fs), 'color', 'w', 'fontweight', 'bold');
-    
+
     axis equal tight off;
     %     box on; set(gca, 'xtick', []);
     %     set(gca, 'ytick', []);
-    
-    
+
+
     if save_avi
         temp = getframe(gcf);
         temp = imresize(temp.cdata, [400, 600]);
