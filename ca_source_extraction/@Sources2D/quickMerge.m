@@ -43,6 +43,12 @@ if ~exist('X', 'var')|| isempty(X)
 end
 
 S = obj.S;
+if isempty(obj.C)
+  fprintf('No neurons detected in this sample\n')
+  merged_ROIs = [];
+  newIDs = [];
+  return;
+end
 if isempty(S) || (size(S, 1)~=size(obj.C, 1))
     S = diff(obj.C, 1, 2);
     S(bsxfun(@lt, S, 2*get_noise_fft(S))) = 0;
@@ -75,10 +81,10 @@ newIDs = zeros(nr, 1);
 for m=1:n2merge
     IDs = find(MC(:, m));   % IDs of neurons within this cluster
     merged_ROIs{m} = IDs;
-    
+
     % determine searching area
     active_pixel = (sum(A(:,IDs), 2)>0);
-    
+
     % update spatial/temporal components of the merged neuron
     data = A(active_pixel, IDs)*C_raw(IDs, :);
     ci = C_raw(IDs(1), :);
