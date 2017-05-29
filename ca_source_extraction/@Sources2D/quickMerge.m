@@ -38,7 +38,7 @@ temp = bsxfun(@times, A>0, 1./sqrt(sum(A>0)));
 A_overlap = temp'*temp;
 
 % compute temporal correlation
-if ~exist('X', 'var')|| isempty(X)
+if ~exist('X', 'var') || isempty(X)
     X = 'C';
 end
 
