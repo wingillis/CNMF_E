@@ -17,7 +17,7 @@ function data = memmap_file_sequence(foldername, fileglob)
 nY = Inf;
 
 if nargin > 1
-  files = dir([foldername, fileglob]);
+  files = dir([foldername, '/', fileglob]);
 else
   files = dir([foldername,'/*.tif']);
 end
