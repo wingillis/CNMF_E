@@ -46,7 +46,7 @@ end
 
 %% information of the data 
 data = matfile(nam_mat);
-Ysiz = data.Ysiz;
+Ysiz = data.sizY;
 d1 = Ysiz(1);   %height
 d2 = Ysiz(2);   %width
 numFrame = Ysiz(3);    %total number of frames
