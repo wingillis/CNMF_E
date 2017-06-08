@@ -5,7 +5,7 @@ function imData=bigread2(path_to_file,sframe,num2read);
 %Darcy Peterka 2014, v1.1 
 %Darcy Peterka 2016, v1.2(bugs to dp2403@columbia.edu)
 %Program checks for bit depth, whether int or float, and byte order.  Assumes uncompressed, non-negative (i.e. unsigned) data.
-%
+% this program also assumes that the image data being read in is in tif format
 % Usage:  my_data=bigread('path_to_data_file, start frame, num to read);
 % "my_data" will be your [M,N,frames] array.
 %Will do mild error checking on the inputs - last two inputs are optional -
@@ -14,7 +14,7 @@ function imData=bigread2(path_to_file,sframe,num2read);
 
 
 %get image info
-info = imfinfo(path_to_file);
+info = imfinfo(path_to_file, 'tif');
 
 % if ~isfield(info,'ImageDescription')
 %    blah=size(info);

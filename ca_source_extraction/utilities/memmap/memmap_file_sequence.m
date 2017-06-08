@@ -16,11 +16,14 @@ function data = memmap_file_sequence(foldername)
 
 nY = Inf;
 files = dir([foldername,'/*.tif']);
+filesCell = struct2cell(files);
+names = filesCell(1,:);
+[names, idx] = natsortfiles(names);
 T = 0;
 data = matfile([foldername,'/',files(1).name(1:end-8),'.mat'],'Writable',true);
 tt1 = tic;
 for i = 1:length(files)
-    filename = [foldername,'/',files(i).name];
+    filename = [foldername,'/',files(idx(i)).name];
     Y = bigread2(filename);
     sizY = size(Y);
     Yr = reshape(Y,prod(sizY(1:end-1)),[]);
