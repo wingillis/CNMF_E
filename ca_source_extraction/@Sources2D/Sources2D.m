@@ -55,12 +55,8 @@ classdef Sources2D < handle
 
         %% fast initialization for microendoscopic data
         [center, Cn, pnr] = initComponents_endoscope(obj, Y, K, patch_sz, debug_on, save_avi);
-<<<<<<< HEAD
-        
         [center] = initComponents_2p(obj,Y, K, options, sn, debug_on, save_avi); 
-=======
 
->>>>>>> a54f3a6d32b0e4fe0f43113b78feec75c4cdece0
         %% update spatial components
         function updateSpatial(obj, Y)
             [obj.A, obj.b, obj.C] = update_spatial_components(Y, ...
@@ -566,7 +562,7 @@ classdef Sources2D < handle
             [~, ~, file_type] = fileparts(nam);
             if strcmpi(file_type, '.mat')
                 data = matfile(nam);
-                Ysiz = data.Ysiz;
+                Ysiz = data.sizY;
                 numFrame = Ysiz(3);
                 img = data.Y(:, :, 1);
             elseif strcmpi(file_type, '.tif') || strcmpi(file_type, '.tiff')
