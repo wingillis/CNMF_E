@@ -1,6 +1,6 @@
-function data = memmap_file_sequence(foldername)
-
-% read a sequence of stacked tiff arrays, reshapes it to 2d array and saves it a mat file that can be memory mapped. 
+function data = memmap_file_sequence(foldername, fileglob, downsample)
+% EDITED: wingillis added a file glob and a downsample factor
+% read a sequence of stacked tiff arrays, reshapes it to 2d array and saves it a mat file that can be memory mapped.
 % The file is saved both in its original format and as a reshaped 2d matrix
 
 % INPUTS
@@ -15,24 +15,37 @@ function data = memmap_file_sequence(foldername)
 % Author: Eftychios A. Pnevmatikakis, Simons Foundation, 2016
 
 nY = Inf;
-files = dir([foldername,'/*.tif']);
+
+if nargin < 2
+  files = dir([foldername,'/*.tif']);
+else
+  files = dir([foldername, '/', fileglob]);
+end
+if nargin < 3
+	downsample = 1;
+end
+
+filesCell = struct2cell(files);
+names = filesCell(1,:);
+[~, idx] = natsortfiles(names);
 T = 0;
 data = matfile([foldername,'/',files(1).name(1:end-8),'.mat'],'Writable',true);
 tt1 = tic;
 for i = 1:length(files)
-    filename = [foldername,'/',files(i).name];
-    Y = bigread2(filename);
-    sizY = size(Y);
-    Yr = reshape(Y,prod(sizY(1:end-1)),[]);
-    nY = min(min(Yr(:)),nY);
-    if length(sizY) == 3
-        data.Y(1:sizY(1),1:sizY(2),T+(1:size(Yr,2))) = Y;        
-    elseif legnth(sizY) == 4
-        data.Y(1:sizY(1),1:sizY(2),1:sizY(3),T+(1:size(Yr,2))) = Y;
-    end
-    data.Yr(1:prod(sizY(1:end-1)),T+(1:size(Yr,2))) = Yr;
-    T = sizY(end) + T;
-    toc(tt1);
+  fprintf('Reading in file %s\n', files(idx(i)).name);
+  filename = [foldername,'/', files(idx(i)).name];
+  Y = imresize(bigread2(filename), 1/downsample);
+  sizY = size(Y);
+  Yr = reshape(Y,prod(sizY(1:end-1)),[]);
+  nY = min(min(Yr(:)),nY);
+  if length(sizY) == 3
+    data.Y(1:sizY(1),1:sizY(2),T+(1:size(Yr,2))) = Y;
+  elseif legnth(sizY) == 4
+    data.Y(1:sizY(1),1:sizY(2),1:sizY(3),T+(1:size(Yr,2))) = Y;
+  end
+  data.Yr(1:prod(sizY(1:end-1)),T+(1:size(Yr,2))) = Yr;
+  T = sizY(end) + T;
+  toc(tt1);
 end
 sizY(end) = T;
 data.sizY = sizY;
