@@ -50,3 +50,4 @@ end
 sizY(end) = T;
 data.sizY = sizY;
 data.nY = nY;
+data.Ysiz = sizY;
