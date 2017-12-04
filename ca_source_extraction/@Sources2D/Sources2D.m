@@ -1711,11 +1711,14 @@ classdef Sources2D < handle
         %% save results
         function save_results(obj, file_nm, Ybg) %#ok<INUSD>
             warning('off', 'all');
-            neuron_results = struct(obj);  %#ok<NASGU>
+            % neuron_results = struct(obj);  %#ok<NASGU>
+            neuron = obj;
             if exist('Ybg', 'var')
-                save(file_nm, 'neuron_results', 'Ybg');
+                % save(file_nm, 'neuron_results', 'Ybg');
+                save(file_nm, 'neuron',  'Ybg');
             else
-                save(file_nm, 'neuron_results');
+                % save(file_nm, 'neuron_results');
+                save(file_nm, 'neuron');
             end
             warning('on', 'all');
             fprintf('results has been saved into file %s\n', file_nm);
