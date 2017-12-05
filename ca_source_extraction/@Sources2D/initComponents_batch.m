@@ -1,4 +1,4 @@
-function initComponents_batch(obj, K, save_avi, use_parallel)
+function initComponents_batch(obj, K, save_avi, use_parallel, use_prev)
 %% initializing spatial/temporal components for calcium imaging data
 %% input:
 %   K:  scalar, maximum number of neurons
@@ -32,6 +32,10 @@ if ~exist('use_parallel', 'var')||isempty(use_parallel)
     use_parallel = true; %don't save initialization procedure
 end
 
+if ~exist('use_prev', 'var') || isempty(use_prev)
+    use_prev = true; % use the previous initializations
+end
+
 %% initializing neurons from all batches.
 nbatches = length(obj.batches);
 for mbatch=1:nbatches
@@ -42,7 +46,7 @@ for mbatch=1:nbatches
     
     if mbatch==1
         % initialization neurons from nothing
-        neuron_k.initComponents_parallel(K, neuron_k.frame_range, save_avi, use_parallel);
+        neuron_k.initComponents_parallel(K, neuron_k.frame_range, save_avi, use_parallel, use_prev);
         
         W_init = neuron_k.W;
         b_init = neuron_k.b;
