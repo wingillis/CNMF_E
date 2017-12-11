@@ -13,12 +13,12 @@ function update_spatial_parallel(obj, use_parallel, update_sn)
 try
     % map data
     mat_data = obj.P.mat_data;
-    
+
     % folders and files for saving the results
     log_file =  obj.P.log_file;
     flog = fopen(log_file, 'a');
     log_data = matfile(obj.P.log_data, 'Writable', true); %#ok<NASGU>
-    
+
     % dimension of data
     dims = mat_data.dims;
     d1 = dims(1);
@@ -26,11 +26,11 @@ try
     T = dims(3);
     obj.options.d1 = d1;
     obj.options.d2 = d2;
-    
+
     % parameters for patching information
     patch_pos = mat_data.patch_pos;
     block_pos = mat_data.block_pos;
-    
+
     % number of patches
     [nr_patch, nc_patch] = size(patch_pos);
 catch
@@ -91,7 +91,7 @@ for mpatch=1:(nr_patch*nc_patch)
     C{mpatch} = obj.C(ind, :);
     ind_neurons{mpatch} = ind;    % indices of the neurons within each patch
     with_neuron{mpatch} = ~isempty(ind);
-    
+
     if strcmpi(bg_model, 'ring')
         ind = find(reshape(mask(:)==1, 1, [])* full(obj.A_prev)>0);
         A_prev{mpatch}= obj.A_prev((mask>0), ind);
@@ -113,9 +113,9 @@ A_new = A;
 tmp_obj = Sources2D();
 tmp_obj.options = obj.options;
 if use_parallel
-    parfor mpatch=1:(nr_patch*nc_patch)
+    for mpatch=1:(nr_patch*nc_patch)
         [r, c] = ind2sub([nr_patch, nc_patch], mpatch);
-        
+
         % no neurons, no need to update sn
         flag_neuron = with_neuron{mpatch};
         if (~flag_neuron) && (~update_sn)
@@ -135,11 +135,11 @@ if use_parallel
         IND_patch = IND_search{mpatch};
         nr = diff(tmp_patch(1:2)) + 1;
         nc = diff(tmp_patch(3:4)) + 1;
-        
+
         % use ind_patch to indicate pixels within the patch
         ind_patch = false(diff(tmp_block(1:2))+1, diff(tmp_block(3:4))+1);
         ind_patch((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1) = true;
-        
+
         % get data
         if strcmpi(bg_model, 'ring')
             % including areas outside of the patch for recorving background
@@ -149,10 +149,10 @@ if use_parallel
             Ypatch = get_patch_data(mat_data, tmp_patch, frame_range, false);
         end
         [nr_block, nc_block, ~] = size(Ypatch);
-        
+
         % get the noise level
         sn_patch = sn{mpatch};
-        
+
         % get background
         if strcmpi(bg_model, 'ring')
             A_patch_prev = A_prev{mpatch};
@@ -161,7 +161,7 @@ if use_parallel
             b0_ring = b0{mpatch};
             Ypatch = reshape(Ypatch, [], T);
             tmp_Y = double(Ypatch)-A_patch_prev*C_patch_prev;
-            
+
             if bg_ssub==1
                 Ypatch = bsxfun(@minus, double(Ypatch(ind_patch,:))- W_ring*tmp_Y, b0_ring-W_ring*mean(tmp_Y, 2));
             else
@@ -173,7 +173,7 @@ if use_parallel
                 Bf = reshape(W_ring*reshape(temp, [], T), d1s, d2s, T);
                 Bf = imresize(Bf, [nr_block, nc_block]);
                 Bf = reshape(Bf, [], T);
-                
+
                 Ypatch = bsxfun(@minus, double(Ypatch(ind_patch, :)) - Bf(ind_patch, :), b0_ring);
             end
         elseif strcmpi(bg_model, 'nmf')
@@ -186,7 +186,7 @@ if use_parallel
             b0_svd = b0{mpatch};
             Ypatch = double(reshape(Ypatch, [], T)) - bsxfun(@plus, b_svd*f_svd, b0_svd);
         end
-        
+
         % using HALS to update spatial components
         if update_sn
             sn_patch = GetSn(Ypatch);
@@ -197,7 +197,7 @@ if use_parallel
             continue;
         end
         A_patch = A_patch(ind_patch, :);
-        
+
         %         temp = HALS_spatial(Ypatch, A_patch, C_patch, IND_patch, 3);
         if strcmpi(method, 'hals')
             temp = HALS_spatial(Ypatch, A_patch, C_patch, IND_patch, 3);
@@ -217,7 +217,7 @@ if use_parallel
 else
     for mpatch=1:(nr_patch*nc_patch)
         [r, c] = ind2sub([nr_patch, nc_patch], mpatch);
-        
+
         % no neurons, no need to update sn
         flag_neuron = with_neuron{mpatch};
         if (~flag_neuron) && (~update_sn)
@@ -236,11 +236,11 @@ else
         IND_patch = IND_search{mpatch};
         nr = diff(tmp_patch(1:2)) + 1;
         nc = diff(tmp_patch(3:4)) + 1;
-        
+
         % use ind_patch to indicate pixels within the patch
         ind_patch = false(diff(tmp_block(1:2))+1, diff(tmp_block(3:4))+1);
         ind_patch((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1) = true;
-        
+
         % get data
         if strcmpi(bg_model, 'ring')
             % including areas outside of the patch for recorving background
@@ -250,10 +250,10 @@ else
             Ypatch = get_patch_data(mat_data, tmp_patch, frame_range, false);
         end
         [nr_block, nc_block, ~] = size(Ypatch);
-        
+
         % get the noise level
         sn_patch = sn{mpatch};
-        
+
         % get background
         if strcmpi(bg_model, 'ring')
             A_patch_prev = A_prev{mpatch};
@@ -262,7 +262,7 @@ else
             b0_ring = b0{mpatch};
             Ypatch = reshape(Ypatch, [], T);
             tmp_Y = double(Ypatch)-A_patch_prev*C_patch_prev;
-            
+
             if bg_ssub==1
                 Ypatch = bsxfun(@minus, double(Ypatch(ind_patch,:))- W_ring*tmp_Y, b0_ring-W_ring*mean(tmp_Y, 2));
             else
@@ -274,7 +274,7 @@ else
                 Bf = reshape(W_ring*reshape(temp, [], T), d1s, d2s, T);
                 Bf = imresize(Bf, [nr_block, nc_block]);
                 Bf = reshape(Bf, [], T);
-                
+
                 Ypatch = bsxfun(@minus, double(Ypatch(ind_patch, :)) - Bf(ind_patch, :), b0_ring);
             end
         elseif strcmpi(bg_model, 'nmf')
@@ -287,7 +287,7 @@ else
             b0_svd = b0{mpatch};
             Ypatch = double(reshape(Ypatch, [], T)) - bsxfun(@plus, b_svd*f_svd, b0_svd);
         end
-        
+
         % using HALS to update spatial components
         if update_sn
             sn_patch = GetSn(Ypatch);
@@ -298,7 +298,7 @@ else
             continue;
         end
         A_patch = A_patch(ind_patch, :);
-        
+
         %         temp = HALS_spatial(Ypatch, A_patch, C_patch, IND_patch, 3);
         if strcmpi(method, 'hals')
             temp = HALS_spatial(Ypatch, A_patch, C_patch, IND_patch, 3);
