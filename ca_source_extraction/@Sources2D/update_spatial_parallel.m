@@ -113,7 +113,7 @@ A_new = A;
 tmp_obj = Sources2D();
 tmp_obj.options = obj.options;
 if use_parallel
-    for mpatch=1:(nr_patch*nc_patch)
+    parfor mpatch=1:(nr_patch*nc_patch)
         [r, c] = ind2sub([nr_patch, nc_patch], mpatch);
 
         % no neurons, no need to update sn
