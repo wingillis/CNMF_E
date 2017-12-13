@@ -74,7 +74,7 @@ if isempty(options.pars) || all(options.pars==0)
     switch options.type
         case 'ar1'
             try
-            options.pars = estimate_time_constant(y, 1, options.sn);
+              options.pars = estimate_time_constant(y, 1, options.sn);
             catch
                 c = y*0;
                 s = c;

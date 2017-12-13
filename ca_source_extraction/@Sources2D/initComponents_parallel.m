@@ -6,7 +6,7 @@ function [center, Cn, PNR] = initComponents_parallel(obj, K, frame_range, save_a
 %   save_avi: save the video of initialization procedure
 %   use_parallel: boolean, do initialization in patch mode or not.
 %       default(true); we recommend you to set it false only when you want to debug the code.
-%   use_prev: boolean, use previous initialization or not 
+%   use_prev: boolean, use previous initialization or not
 %% Output:
 %   center: d*2 matrix, centers of all initialized neurons.
 %   Cn:     correlation image
@@ -19,7 +19,7 @@ try
     % map data
     mat_data = obj.P.mat_data;
     mat_file = mat_data.Properties.Source;
-    
+
     % dimension of data
     dims = mat_data.dims;
     d1 = dims(1);
@@ -39,7 +39,7 @@ try
     end
     T = diff(frame_range) + 1;
     obj.frame_range = frame_range;
-    
+
     % folders and files for saving the results
     tmp_dir = sprintf('%s%sframes_%d_%d%s', fileparts(mat_file),filesep, frame_range(1), frame_range(2), filesep);
     if ~exist(tmp_dir, 'dir')
@@ -52,7 +52,7 @@ try
     obj.P.log_file = log_file;
     obj.P.log_data = log_data_file;
     log_data = matfile(log_data_file, 'Writable', true);
-    
+
     % scan the previous initialization results
     temp = dir(tmp_dir);
     previous_folder = cell(length(temp),1);
@@ -63,13 +63,13 @@ try
             previous_folder{k} = temp(m).name;
         end
     end
-    
+
     % create a folder for new log
     mkdir(log_folder);
-    
+
     % manually check whether to re-use the previous results
     if ~exist('use_prev', 'var') || isempty(use_prev)
-        use_prev = true; 
+        use_prev = true;
     end
     if (k > 0) & use_prev
         fprintf('\nYou have ran %d initialization(s). \n', k);
@@ -81,8 +81,8 @@ try
         fprintf('\ttype -i to remove some previous results from your hard drive\n');
         fprintf('\ttype anything if you want to start a new initialization\n');
         fprintf('\t--------------------------  END  --------------------------\n');
-        
-        while true 
+
+        while true
             choice = input('* make your choice:    ');
             if (choice>0) && (choice<=k)
                 % reuse this folder and stop the initialization
@@ -90,18 +90,18 @@ try
                     % copy the previous log file
                     log_old = fopen(fullfile(tmp_dir, previous_folder{choice}, 'logs.txt'), 'r');
                     flog = fopen(log_file, 'a');
-                    
+
                     while true
                         temp = fgets(log_old);
                         fprintf(flog, '%s',temp);
-                        
+
                         if strfind(temp, 'Finished the initialization procedure.') %#ok<*STRIFCND>
                             fclose(log_old);
                             break;
                         end
                     end
                     fclose(flog);
-                    
+
                     % copy the previous results
                     data = matfile(fullfile(tmp_dir, previous_folder{1}, 'intermediate_results.mat'));
                     log_data.initialization = data.initialization;
@@ -136,12 +136,12 @@ try
                 end
                 % write this operation to the log file
                 flog = fopen(log_file, 'a');
-                
+
                 fprintf(flog, '\n--------%s--------\n', get_date());
                 fprintf(flog, '[%s]\b', get_minute());
                 fprintf(flog, 'Continue the analysis from the previous initialization results:\n\t%s \n\n', previous_folder{choice});
                 %                 fprintf('\tContinue the previous initialization  \n\n');
-                
+
                 return;
             elseif (choice<0) && (choice>=-k)
                 % delete the folder
@@ -154,14 +154,14 @@ try
                 break;
             end
         end
-        
+
     end
     %
-    
+
     % parameters for patching information
     patch_pos = mat_data.patch_pos;
     block_pos = mat_data.block_pos;
-    
+
     % number of patches
     [nr_patch, nc_patch] = size(patch_pos);
 catch
@@ -209,7 +209,7 @@ W = cell(nr_patch, nc_patch);    % matrix for saving the weight matrix within ea
 b0 = cell(nr_patch, nc_patch);   % constant baselines for all pixels
 b = cell(nr_patch, nc_patch);
 f = cell(nr_patch, nc_patch);
-Ymean = cell(nr_patch, nc_patch); 
+Ymean = cell(nr_patch, nc_patch);
 if strcmpi(bg_model, 'ring')
     rr = ceil(obj.options.ring_radius/bg_ssub);    % radius of the ring
     [r_shift, c_shift] = get_nhood(rr, obj.options.num_neighbors);    % shifts used for acquiring the neighboring pixels on the ring
@@ -221,7 +221,7 @@ if strcmpi(bg_model, 'ring')
         nr_block = diff(tmp_block(1:2))+1;
         nc_block = diff(tmp_block(3:4))+1;
         b0{mpatch} = zeros(nr*nc, 1);
-        
+
         if bg_ssub==1
             [csub, rsub] = meshgrid(tmp_patch(3):tmp_patch(4), tmp_patch(1):tmp_patch(2));
             csub = reshape(csub, [], 1);
@@ -231,13 +231,13 @@ if strcmpi(bg_model, 'ring')
             rsub = bsxfun(@plus, rsub, r_shift);
             ind = and(and(csub>=1, csub<=d2), and(rsub>=1, rsub<=d1));
             jj = (csub-tmp_block(3)) * (diff(tmp_block(1:2))+1) + (rsub-tmp_block(1)+1);
-            
+
             temp = sparse(ii(ind), jj(ind), 1, nr*nc, nr_block*nc_block);
             W{mpatch} = bsxfun(@times, temp, 1./sum(temp, 2));
         else
             d1s = ceil(nr_block/bg_ssub);
             d2s = ceil(nc_block/bg_ssub);
-            
+
             [csub, rsub] = meshgrid(1:d2s, 1:d1s);
             csub = reshape(csub, [], 1);
             rsub = reshape(rsub, [], 1);
@@ -307,36 +307,38 @@ default_kernel = obj.kernel;
 
 results = cell(nr_patch*nc_patch, 1);
 if use_parallel
-    parfor mpatch=1:(nr_patch*nc_patch)
+    % TODO: change back to parfor loop
+    % parfor mpatch=1:(nr_patch*nc_patch)
+    for mpatch=1:(nr_patch*nc_patch)
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
-        
+
         % boundaries pixels to be avoided for detecting seed pixels
         tmp_options = options;
         tmp_options.visible_off = true;
         tmp_options.bd = (tmp_patch==tmp_block).*([bd, bd, bd, bd]);
 %                 tmp_options.bd = max([(tmp_patch-tmp_block).*[1, -1, 1, -1]; bd, bd, bd, bd], [], 1);
-        
+
         % patch dimension
         tmp_options.d1 = diff(tmp_block(1:2))+1;
         tmp_options.d2 = diff(tmp_block(3:4))+1;
-        
+
         % parameter for calcium indicators. This one may not be used if the
         % selected deconvolution algorithm doesn't need it
         tmp_options.kernel = default_kernel;
-        
+
         % file names for saving avi file
         if save_avi
             tmp_save_avi = sprintf('%sinitialization_%d_%d_%d_%d.avi', log_folder, tmp_block(1), tmp_block(2), tmp_block(3), tmp_block(4));
         else
             tmp_save_avi = save_avi;
         end
-        
+
         % load the patch data
         Ypatch = get_patch_data(mat_data, tmp_patch, frame_range, true);
-        temp = mean(Ypatch, 3); 
-        Ymean{mpatch} = temp((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1); 
+        temp = nanmean(Ypatch, 3);
+        Ymean{mpatch} = temp((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1);
         Ypatch = double(reshape(Ypatch, [], T));
         if nk>1
             Ypatch_dt = detrend_data(Ypatch, nk, detrend_method); % detrend data
@@ -344,7 +346,7 @@ if use_parallel
         else
             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope(Ypatch, K, tmp_options, [], tmp_save_avi);
         end
-        
+
         % put everthing into one struct variable
         tmp_results.center = tmp_center;
         tmp_results.Cn = tmp_Cn;
@@ -360,33 +362,33 @@ else
         % get the indices corresponding to the selected patch
         tmp_patch = patch_pos{mpatch};
         tmp_block = block_pos{mpatch};
-        
+
         % boundaries pixels to be avoided for detecting seed pixels
         tmp_options = options;
         tmp_options.visible_off = true;
         tmp_options.bd = (tmp_patch==tmp_block).*([bd, bd, bd, bd]);
         %         tmp_options.bd = max([(tmp_patch-tmp_block).*[1, -1, 1, -1]; bd, bd, bd, bd], [], 1);
-        
+
         % patch dimension
         tmp_options.d1 = diff(tmp_block(1:2))+1;
         tmp_options.d2 = diff(tmp_block(3:4))+1;
-        
+
         % parameter for calcium indicators. This one may not be used if the
         % selected deconvolution algorithm doesn't need it
         tmp_options.kernel = default_kernel;
-        
+
         % file names for saving avi file
         if save_avi
             tmp_save_avi = sprintf('%sinitialization_%d_%d_%d_%d.avi', log_folder, tmp_block(1), tmp_block(2), tmp_block(3), tmp_block(4));
         else
             tmp_save_avi = save_avi;
         end
-        
+
         % load the patch data
         Ypatch = get_patch_data(mat_data, tmp_patch, frame_range, true);
-        temp = mean(Ypatch, 3); 
-        Ymean{mpatch} = temp((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1); 
-        
+        temp = mean(Ypatch, 3);
+        Ymean{mpatch} = temp((tmp_patch(1):tmp_patch(2))-tmp_block(1)+1, (tmp_patch(3):tmp_patch(4))-tmp_block(3)+1);
+
         Ypatch = double(reshape(Ypatch, [], T));
         if nk>1
             Ypatch_dt = detrend_data(Ypatch, nk); % detrend data
@@ -394,7 +396,7 @@ else
         else
             [tmp_results, tmp_center, tmp_Cn, tmp_PNR, ~] = greedyROI_endoscope(Ypatch, K, tmp_options, [], tmp_save_avi);
         end
-        
+
         % put everthing into one struct variable
         tmp_results.center = tmp_center;
         tmp_results.Cn = tmp_Cn;
@@ -419,20 +421,20 @@ for mpatch=1:(nr_patch*nc_patch)
     c1 = tmp_block(4);
     ind_patch = true(r1-r0+1, c1-c0+1);
     ind_patch((tmp_patch(1):tmp_patch(2))-r0+1, (tmp_patch(3):tmp_patch(4))-c0+1) = false;
-    
+
     % unpack results
     tmp_results = results{mpatch};
-    
+
     %     eval(sprintf('tmp_results=results_patch_%d;', mpatch));
     %     tmp_Ain = tmp_results.Ain;
     %     tmp_Ain(ind_patch, :) = 0;
     %     tmp_ind = (sum(tmp_Ain, 1)>0);
-    
+
     % keep neurons whose seed pixel is within the patch
     ctr = round( tmp_results.center);
     ind= sub2ind(size(ind_patch), ctr(:, 1), ctr(:,2));
     tmp_ind = (~ind_patch(ind));
-    
+
     tmp_Ain = tmp_results.Ain(:, tmp_ind);
     tmp_Cin = tmp_results.Cin(tmp_ind,:);
     tmp_Cin_raw = tmp_results.Cin_raw(tmp_ind,:);
@@ -445,7 +447,7 @@ for mpatch=1:(nr_patch*nc_patch)
     end
     tmp_K = size(tmp_Ain, 2);   % number of neurons within the selected patch
     [tmp_d1, tmp_d2] = size(tmp_Cn);
-    
+
     temp = zeros(d1, d2, tmp_K);  % spatial components of all neurons
     temp(r0:r1, c0:c1, :) = reshape(full(tmp_Ain), tmp_d1, tmp_d2, []);
     Ain{mr, mc} = reshape(temp, d1*d2, tmp_K);
@@ -456,7 +458,7 @@ for mpatch=1:(nr_patch*nc_patch)
         kernel_pars{mr,mc} = tmp_kernel_pars;
     end
     center{mr, mc} = bsxfun(@plus, tmp_center, [r0-1, c0-1]); % centers
-    
+
     Cn(r0:r1, c0:c1) = max(Cn(r0:r1, c0:c1), tmp_Cn.*(1-ind_patch));
     PNR(r0:r1, c0:c1) = max(PNR(r0:r1, c0:c1), tmp_PNR.*(1-ind_patch));
 end
@@ -481,7 +483,7 @@ K = size(obj.A, 2);
 obj.P.k_ids = K;
 obj.ids = (1:K);
 obj.tags = zeros(K,1, 'like', uint16(0));
-obj.P.Ymean = Ymean; 
+obj.P.Ymean = Ymean;
 
 %% save the results to log
 fprintf(flog, '[%s]\b', get_minute());

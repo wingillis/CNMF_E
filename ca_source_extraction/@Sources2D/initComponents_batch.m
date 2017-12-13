@@ -43,11 +43,11 @@ for mbatch=1:nbatches
     neuron_k = batch_k.neuron;
     neuron_k.options = obj.options;
     fprintf('\nprocessing batch %d/%d\n', mbatch, nbatches);
-    
+
     if mbatch==1
         % initialization neurons from nothing
         neuron_k.initComponents_parallel(K, neuron_k.frame_range, save_avi, use_parallel, use_prev);
-        
+
         W_init = neuron_k.W;
         b_init = neuron_k.b;
         f_init = neuron_k.f;
@@ -60,20 +60,20 @@ for mbatch=1:nbatches
         neuron_k.b = obj.b;
         neuron_k.ids = obj.ids;
         neuron_k.tags = obj.tags;
-        
-        neuron_k.W = W_init;
-        neuron_k.b = b_init;
+
+        % neuron_k.W = W_init;
+        % neuron_k.b = b_init; % TODO: figure out why this is here, when is above too
         neuron_k.f = f_init;
-        neuron_k.b0 = b0_init;
-        
+        neuron_k.b0 = b0_init; % just zero, according to initComponents_parallel
+
         neuron_k.initTemporal(neuron_k.frame_range, use_parallel);
     end
     % update background
     neuron_k.update_background_parallel(use_parallel);
-    
+
     % pick more neurons from the residual
     neuron_k.initComponents_residual_parallel([], save_avi, use_parallel);
-    
+
     % collect results
     batch_k.neuron = neuron_k;
     obj.A = neuron_k.A;
@@ -81,11 +81,14 @@ for mbatch=1:nbatches
     obj.b = neuron_k.b;
     obj.f = neuron_k.f;
     obj.b0 = neuron_k.b0;
+    % obj.b0_new = neuron_k.b0_new; % TODO: figure out if I can add this in
     obj.ids = neuron_k.ids;
     obj.tags = neuron_k.tags;
-    obj.P.k_ids = neuron_k.P.k_ids; 
+    obj.P.k_ids = neuron_k.P.k_ids;
     obj.batches{mbatch} = batch_k;
 end
+
+% TODO: put a breakpoint here
 
 %% spread the same A to all batches and update temporal components
 K = size(obj.A, 2);
@@ -94,7 +97,7 @@ for mbatch=1:nbatches
     batch_k = obj.batches{mbatch};
     neuron_k = batch_k.neuron;
     neuron_k.options = obj.options;
-    
+
     if size(neuron_k.A,2) == size(obj.A,2)
         break;
     end
@@ -102,7 +105,7 @@ for mbatch=1:nbatches
     neuron_k.P.k_ids = obj.P.k_ids;
     neuron_k.ids = obj.ids;
     neuron_k.tags = obj.tags;
-    
+
     fprintf('\nprocessing batch %d/%d\n', mbatch, nbatches);
     [tmp_K, T] = size(neuron_k.C);
     if K>tmp_K
@@ -110,7 +113,7 @@ for mbatch=1:nbatches
     end
     % update temporal components
     neuron_k.update_temporal_parallel(use_parallel);
-    
+
     % collect results
     batch_k.neuron = neuron_k;
     obj.batches{mbatch} = batch_k;
