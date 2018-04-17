@@ -33,7 +33,8 @@ K = size(A, 2);     % number of components
 T = size(Y, 2);     % number of frames
 if ~exist('C', 'var')||isempty(C)
     % roughly initialize C 
-    tmpA = bsxfun(@times, A, 1./sum(A, 1)); 
+    tmpA = bsxfun(@times, A, 1./sum(A, 1)+eps);
+    tmpA(isnan(tmpA)) = 0;
     ind_max = bsxfun(@eq, tmpA, max(tmpA, [], 2)); 
     tmp_A = A.*double(ind_max); 
     C = bsxfun(@times, tmp_A'*Y, 1./sum(tmp_A.^2, 1)'); 

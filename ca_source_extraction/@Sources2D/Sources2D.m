@@ -1298,7 +1298,7 @@ classdef Sources2D < handle
                     ind = (reshape(mask(:), 1, [])* obj.A_prev>0);
                     
                     A_patch = obj.A_prev(logical(mask), ind);
-                    C_patch = obj.C_prev(ind, frame_range(1):frame_range(2));
+                    C_patch = obj.C_prev(ind, (frame_range(1)-obj.frame_range(1) + 1):(frame_range(2)-obj.frame_range(2)+1));
                     
                     % reconstruct background
                     %                     Cmean = mean(C_patch , 2);

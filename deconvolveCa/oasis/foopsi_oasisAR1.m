@@ -85,7 +85,8 @@ if ~optimize_b   %% don't optimize the baseline b
 else
     %% initialization
     b = quantile(y, 0.15);
-    [solution, spks, active_set] = oasisAR1(y-b, g, lam, smin);
+    
+    
     
     %% iteratively update parameters g and b
     for m=1:maxIter
